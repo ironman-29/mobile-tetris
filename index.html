@@ -115,6 +115,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .control-btn:active {
@@ -429,7 +431,7 @@
         }
 
         function updateScore() {
-            document.getElementById('score').textContent = '점수: ' + score;
+            document.getElementById('score').textContent = score;
         }
 
         function draw() {
@@ -498,25 +500,27 @@
             }
         });
 
-        // 마우스/터치 컨트롤
-        document.getElementById('left-btn').addEventListener('mousedown', () => {
-            if (!gameOver && !paused) playerMove(-1);
-        });
-
-        document.getElementById('right-btn').addEventListener('mousedown', () => {
-            if (!gameOver && !paused) playerMove(1);
-        });
-
-        document.getElementById('rotate-btn').addEventListener('mousedown', () => {
-            if (!gameOver && !paused) playerRotate();
-        });
-
-        document.getElementById('down-btn').addEventListener('mousedown', () => {
-            if (!gameOver && !paused) playerQuickDrop();
-        });
+        // 모바일 터치 컨트롤 (마우스 이벤트와 터치 이벤트 모두 지원)
+        const addButtonEvent = (id, action) => {
+            const button = document.getElementById(id);
+            
+            ['mousedown', 'touchstart'].forEach(eventType => {
+                button.addEventListener(eventType, (e) => {
+                    e.preventDefault();
+                    if (!gameOver && !paused) action();
+                });
+            });
+        };
+        
+        // 컨트롤 버튼에 이벤트 추가
+        addButtonEvent('left-btn', () => playerMove(-1));
+        addButtonEvent('right-btn', () => playerMove(1));
+        addButtonEvent('rotate-btn', () => playerRotate());
+        addButtonEvent('down-btn', () => playerQuickDrop());
 
         // 시작 버튼
-        document.getElementById('start-btn').addEventListener('click', () => {
+        document.getElementById('start-btn').addEventListener('click', (e) => {
+            e.preventDefault();
             if (gameOver) {
                 resetGame();
                 createPiece();
@@ -552,6 +556,16 @@
             gameOver = false;
             updateScoreboard();
         }
+
+        // 모바일 기기에서 스와이프 방지
+        document.addEventListener('touchmove', function(e) {
+            if (e.target.classList.contains('control-btn') || e.target.id === 'tetris') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // 페이지 로드시 최고 점수 표시
+        updateScoreboard();
     </script>
 </body>
 </html>
